@@ -99,6 +99,39 @@ bool ArrayList<T>::Iterator::operator!=(const ArrayList<T>::Iterator& other) con
     return true;
 }
 
+template <class T>
+ArrayList<T>::Iterator& ArrayList<T>::Iterator::operator++() {
+    if (cursor == pList->size())
+        throw out_of_range("Iterator cannot advance past end!");
+    cursor++;
+    return *this;
+}
+
+template <class T>
+ArrayList<T>::Iterator ArrayList<T>::Iterator::operator++(int) {
+    if (cursor == pList->size())
+        throw out_of_range("Iterator cannot advance past end!");
+    Iterator temp(this->pList, this->cursor);
+    (this->cursor)++;
+    return temp;
+} 
+
+template <class T>
+ArrayList<T>::Iterator& ArrayList<T>::Iterator::operator--() {
+    if (cursor == 0)
+        throw out_of_range("Iterator cannot move before begin!");
+    cursor--;
+    return *this;
+}
+
+template <class T>
+ArrayList<T>::Iterator ArrayList<T>::Iterator::operator--(int) {
+    if (cursor == 0)
+        throw out_of_range("Iterator cannot move before begin!");
+    Iterator temp(this->pList, this->cursor);
+    (this->cursor)++;
+    return temp;
+}
 
 
 // TODO: implement other methods of ArrayList::Iterator
