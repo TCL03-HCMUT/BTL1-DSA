@@ -4,7 +4,6 @@
 
 template <class T>
 ArrayList<T>::ArrayList(int initCapacity = 10) : capacity(initCapacity), count(0) {
-    // TODO
     data = new T[capacity];
 }
 
@@ -35,13 +34,72 @@ ArrayList<T>&  ArrayList<T>::operator=(const ArrayList<T>& other) {
 
 // TODO: implement other methods of ArrayList
 
+template <class T>
+void ArrayList<T>::setCapacity(int newCapacity) {
+    T *newData = new T[newCapacity];
+    for (int i = 0; i < count; i++) {
+        newData[i] = data[i];
+    }
+    capacity = newCapacity;
+    delete[] data;
+    data = newData;
+}
+
+template <class T>
+void ArrayList<T>::ensureCapacity(int cap) {
+    if (cap > this->capacity) {
+        int newCapacity = (capacity * 3)/2 + 1;
+        if (newCapacity < cap) {
+            newCapacity = cap;
+        }
+        setCapacity(newCapacity);
+    }
+}
+
+template <class T>
+void ArrayList<T>::add(T e) {
+    // TODO: after implementing iterators
+}
+
 
 
 // ----------------- Iterator of ArrayList Implementation -----------------
 template <class T>
 ArrayList<T>::Iterator::Iterator(ArrayList<T>* pList, int index) {
     // TODO
+    if (pList) {
+        if (index < 0 || index > pList->size())
+            throw out_of_range("Index is invalid!");
+        
+        this->pList = pList;
+        this->cursor = index;
+    }
 }
+
+template <class T>
+ArrayList<T>::Iterator& ArrayList<T>::Iterator::operator=(const ArrayList<T>::Iterator& other) {
+    this->pList = other.pList;
+    this->cursor = other.cursor;
+    return *this;
+}
+
+template <class T>
+T& ArrayList<T>::Iterator::operator*() {
+    if (cursor < 0 || cursor >= pList->size())
+        throw out_of_range("Iterator is out of range!");
+    // FIXME: check for pList == nullptr
+    return (*pList)[cursor];
+}
+
+template <class T>
+bool ArrayList<T>::Iterator::operator!=(const ArrayList<T>::Iterator& other) const {
+    if (this->pList != other.pList || this->cursor != other.cursor) {
+        return false;
+    }
+    return true;
+}
+
+
 
 // TODO: implement other methods of ArrayList::Iterator
 

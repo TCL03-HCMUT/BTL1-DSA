@@ -17,6 +17,7 @@ private:
     int capacity;
     int count;
 
+    void setCapacity(int newCapacity);
     void ensureCapacity(int cap);
 
 public:
@@ -61,6 +62,9 @@ public:
         Iterator& operator--();
         Iterator operator--(int);
     };
+
+private:
+    Iterator begin, end;
 };
 
 // =====================================
