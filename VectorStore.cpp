@@ -3,18 +3,34 @@
 // ----------------- ArrayList Implementation -----------------
 
 template <class T>
-ArrayList<T>::ArrayList(int initCapacity = 10) {
+ArrayList<T>::ArrayList(int initCapacity = 10) : capacity(initCapacity), count(0) {
     // TODO
+    data = new T[capacity];
 }
 
 template <class T>
-ArrayList<T>::ArrayList(const ArrayList<T>& other) {
-    // TODO
+ArrayList<T>::ArrayList(const ArrayList<T>& other) : capacity(other.capacity), count(other.count) {
+    this->data = new T[this->capacity];
+    for (int i = 0; i < count; i++) {
+        (this->data)[i] = (other.data)[i];
+    }
 }   
 
 template <class T>
 ArrayList<T>::~ArrayList() {
-    // TODO
+    delete[] data;
+}
+
+template <class T>
+ArrayList<T>&  ArrayList<T>::operator=(const ArrayList<T>& other) {
+    delete[] this->data;
+    this->capacity = other.capacity;
+    this->count = other.count;
+    this->data = new T[this->capacity];
+    for (int i = 0; i < count; i++) {
+        (this->data)[i] = other.data[i];
+    }
+    return *this;
 }
 
 // TODO: implement other methods of ArrayList
