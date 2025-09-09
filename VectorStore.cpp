@@ -4,6 +4,8 @@
 
 template <class T>
 ArrayList<T>::ArrayList(int initCapacity = 10) : capacity(initCapacity), count(0) {
+    begin = Iterator(this, 0);
+    end = Iterator(this, 1);
     data = new T[capacity];
 }
 
@@ -13,6 +15,8 @@ ArrayList<T>::ArrayList(const ArrayList<T>& other) : capacity(other.capacity), c
     for (int i = 0; i < count; i++) {
         (this->data)[i] = (other.data)[i];
     }
+    this->begin = other.begin;
+    this->end = other.end;
 }   
 
 template <class T>
@@ -24,11 +28,11 @@ template <class T>
 ArrayList<T>&  ArrayList<T>::operator=(const ArrayList<T>& other) {
     delete[] this->data;
     this->capacity = other.capacity;
-    this->count = other.count;
     this->data = new T[this->capacity];
-    for (int i = 0; i < count; i++) {
-        (this->data)[i] = other.data[i];
-    }
+    memcpy(this->data, other.data, sizeof(T) * other.count);
+    this->count = other.count;
+    this->begin = other.begin;
+    this->end = other.end;
     return *this;
 }
 
@@ -37,9 +41,7 @@ ArrayList<T>&  ArrayList<T>::operator=(const ArrayList<T>& other) {
 template <class T>
 void ArrayList<T>::setCapacity(int newCapacity) {
     T *newData = new T[newCapacity];
-    for (int i = 0; i < count; i++) {
-        newData[i] = data[i];
-    }
+    memcpy(newData, data, sizeof(T) * count);
     capacity = newCapacity;
     delete[] data;
     data = newData;
@@ -57,11 +59,107 @@ void ArrayList<T>::ensureCapacity(int cap) {
 }
 
 template <class T>
-void ArrayList<T>::add(T e) {
-    // TODO: after implementing iterators
+void ArrayList<T>::rangeCheck(int index) {
+    if (index < 0 || index >= count)
+        throw throw out_of_range("Index is invalid!");
 }
 
+template <class T>
+void ArrayList<T>::add(T e) {
+    // TODO: after implementing iterators
+    ensureCapacity(count + 1);
+    data[count++] = e;
+    end++;
+}
 
+template <class T>
+void ArrayList<T>::add(int index, T e) {
+    if (index < 0 || index > count)
+        throw out_of_range("Index is invalid!");
+
+    ensureCapacity(count + 1);
+
+    int moveCount = count - index;
+    if (moveCount != 0) // moveCount == 0: insert at end
+        memmove(storage + index + 1, storage + index, sizeof(T) * moveCount);
+    
+    data[index] = e;
+    count++;
+}
+
+template <class T>
+T ArrayList<T>::removeAt(int index) {
+    rangeCheck(index);
+    int moveCount = count - index - 1;
+    if (moveCount > 0)
+        memmove(data + index, data + (index + 1), sizeof(T) * moveCount);
+    
+    count--;
+}
+
+template <class T>
+bool ArrayList<T>::empty() const {
+    return count == 0;
+}
+
+template <class T>
+int ArrayList<T>::size() const {
+    return count;
+}
+
+template <class T>
+void ArrayList<T>::clear() {
+    delete[] data;
+    capacity = 10;
+    count = 0;
+    data = new T[capacity];
+}
+
+template <class T>
+T& ArrayList<T>::get(int index) {
+    rangeCheck(index);
+    return data[index];
+}
+
+template <class T>
+void ArrayList<T>::set(int index, T e) {
+    rangeCheck(index);
+    data[index] = e;
+}
+
+template <class T>
+int ArrayList<T>::indexOf(T item) const {
+    for (int i = 0; i < count; i++) {
+        if (data[i] == item)
+            return i;
+    }
+    return -1;
+}
+
+template <class T>
+bool ArrayList<T>::contains(T item) const {
+    for (int i = 0; i < count; i++) {
+        if (data[i] == item)
+            return true;
+    }
+    return false;
+}
+
+template <class T>
+string ArrayList<T>::toString(string (*item2str)(T&)) const {
+    stringstream result;
+    result << "[";
+    for (int i = 0; i < count; i++) {
+        if (item2str)
+            result << item2str(data[i]);
+        else
+            result << data[i];
+
+        if (i < count - 1)
+            result << ",";
+    }
+    result << "]";
+}
 
 // ----------------- Iterator of ArrayList Implementation -----------------
 template <class T>
@@ -88,7 +186,7 @@ T& ArrayList<T>::Iterator::operator*() {
     if (cursor < 0 || cursor >= pList->size())
         throw out_of_range("Iterator is out of range!");
     // FIXME: check for pList == nullptr
-    return (*pList)[cursor];
+    return pList->get(cursor);
 }
 
 template <class T>

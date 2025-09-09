@@ -19,6 +19,7 @@ private:
 
     void setCapacity(int newCapacity);
     void ensureCapacity(int cap);
+    void rangeCheck(int index);
 
 public:
     class Iterator;
