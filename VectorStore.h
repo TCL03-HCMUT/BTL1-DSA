@@ -97,6 +97,7 @@ private:
 
     void rangeCheck(int index);
     void insertAtHead(T e);
+    T removeHead();
 
 public:
     class Iterator;

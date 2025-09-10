@@ -358,16 +358,90 @@ void SinglyLinkedList<T>::add(int index, T e)
         return;
     }
 
-    Node *pre = head;
+    Node *prev = head;
 
     for (int i = 0; i < index - 1; i++)
-        pre = pre->next;
+        prev = prev->next;
     
     Node *temp = new Node(e);
-    temp->next = pre->next;
-    pre->next = temp;
+    temp->next = prev->next;
+    prev->next = temp;
     count++;
 }
+
+template <class T>
+T SinglyLinkedList<T>::removeHead()
+{
+    Node *temp = head;
+    head = head->next;
+    if (count == 1) // if count == 1
+        tail = nullptr;
+    
+    T value = temp->data;
+    delete temp;
+    count--;
+    return value;
+}
+
+template <class T>
+T SinglyLinkedList<T>::removeAt(int index)
+{
+    rangeCheck(index);
+    // Case 1: head deletion
+    if (index == 0)
+    {
+        return removeHead();
+    }
+
+    // Case 2: middle or tail deletion
+    Node *prev = head;
+    for (int i = 0; i < index - 1; i++)
+        prev = prev->next;
+    
+    if (index == count - 1) // deletion at tail
+        tail = prev; // move tail to previous
+
+    Node *temp = prev->next;
+    prev->next = temp->next;
+
+    T value = temp->data;
+    delete temp;
+    count--;
+    return value;
+}
+
+template <class T>
+bool SinglyLinkedList<T>::removeItem(T item) 
+{
+    if (head == nullptr)
+        return false;
+    
+    if (item == head->data)
+    {
+        removeHead();
+        return true;
+    }
+
+    Node *prev = head, *temp = head->next;
+    while (temp != nullptr && temp->data != item)
+    {
+        prev = prev->next;
+        temp = temp->next;
+    }
+
+    if (temp == nullptr)
+        return false;
+    
+    if (temp == tail)
+        tail = prev;
+    
+    prev->next = temp->next;
+    delete temp;
+    count--;
+    return true;
+}
+
+
 
 // TODO: implement other methods of SinglyLinkedList
 
