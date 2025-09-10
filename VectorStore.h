@@ -138,6 +138,9 @@ public:
         Iterator &operator++();
         Iterator operator++(int);
     };
+
+private:
+    Iterator front, back;
 };
 
 // =====================================

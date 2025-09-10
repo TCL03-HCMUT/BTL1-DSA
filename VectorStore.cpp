@@ -284,19 +284,14 @@ typename ArrayList<T>::Iterator ArrayList<T>::Iterator::operator--(int)
 template <class T>
 SinglyLinkedList<T>::SinglyLinkedList() : head(nullptr), tail(nullptr), count(0)
 {
-    
+    front = Iterator(head);
+    back = Iterator(head);
 }
 
 template <class T>
 SinglyLinkedList<T>::~SinglyLinkedList()
 {
-    Node *temp = head, next;
-    while (temp != nullptr)
-    {
-        next = temp->next;
-        delete temp;
-        temp = next;
-    }
+    clear();
 }
 
 template <class T>
@@ -331,10 +326,9 @@ void SinglyLinkedList<T>::insertAtHead(T e)
     {
         head = temp;
         tail = temp;
-        count++;
         return;
     }
-    
+
     temp->next = head;
     head = temp;
     count++;
@@ -362,7 +356,7 @@ void SinglyLinkedList<T>::add(int index, T e)
 
     for (int i = 0; i < index - 1; i++)
         prev = prev->next;
-    
+
     Node *temp = new Node(e);
     temp->next = prev->next;
     prev->next = temp;
@@ -376,7 +370,7 @@ T SinglyLinkedList<T>::removeHead()
     head = head->next;
     if (count == 1) // if count == 1
         tail = nullptr;
-    
+
     T value = temp->data;
     delete temp;
     count--;
@@ -397,10 +391,11 @@ T SinglyLinkedList<T>::removeAt(int index)
     Node *prev = head;
     for (int i = 0; i < index - 1; i++)
         prev = prev->next;
-    
-    if (index == count - 1) // deletion at tail
-        tail = prev; // move tail to previous
 
+    if (index == count - 1) // deletion at tail
+    { 
+        tail = prev;        // move tail to previous
+    }
     Node *temp = prev->next;
     prev->next = temp->next;
 
@@ -411,11 +406,11 @@ T SinglyLinkedList<T>::removeAt(int index)
 }
 
 template <class T>
-bool SinglyLinkedList<T>::removeItem(T item) 
+bool SinglyLinkedList<T>::removeItem(T item)
 {
     if (head == nullptr)
         return false;
-    
+
     if (item == head->data)
     {
         removeHead();
@@ -431,14 +426,99 @@ bool SinglyLinkedList<T>::removeItem(T item)
 
     if (temp == nullptr)
         return false;
-    
+
     if (temp == tail)
         tail = prev;
-    
+
     prev->next = temp->next;
     delete temp;
     count--;
+    back--;
     return true;
+}
+
+template <class T>
+bool SinglyLinkedList<T>::empty() const
+{
+    return count == 0;
+}
+
+template <class T>
+int SinglyLinkedList<T>::size() const
+{
+    return count;
+}
+
+template <class T>
+void SinglyLinkedList<T>::clear()
+{
+    Node *temp = head, *next;
+    while (temp != nullptr)
+    {
+        next = temp->next;
+        delete temp;
+        temp = next;
+    }
+    count = 0;
+    head = nullptr;
+    tail = nullptr;
+}
+
+template <class T>
+T &SinglyLinkedList<T>::get(int index)
+{
+    rangeCheck(index);
+    Node *temp = head;
+    for (int i = 0; i < index; i++)
+        temp = temp->next;
+    return temp->data;
+}
+
+template <class T>
+int SinglyLinkedList<T>::indexOf(T item) const
+{
+    Node *temp = head;
+    for (int i = 0; i < count; i++)
+    {
+        if (temp->data == item)
+            return i;
+
+        temp = temp->next;
+    }
+    return -1;
+}
+
+template <class T>
+bool SinglyLinkedList<T>::contains(T item) const
+{
+    Node *temp = head;
+    while (temp != nullptr)
+    {
+        if (temp->data == item)
+            return true;
+        temp = temp->next;
+    }
+    return false;
+}
+
+template <class T>
+string SinglyLinkedList<T>::toString(string (*item2str)(T &) = 0) const
+{
+    stringstream result;
+    result << "[";
+    Node *temp = head;
+    while (temp != nullptr)
+    {
+        if (item2str)
+            result << item2str(temp->data);
+        else
+            result << temp->data;
+
+        if (i < count - 1)
+            result << "]->[";
+    }
+    result << "]";
+    return result.str();
 }
 
 
