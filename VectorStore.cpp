@@ -3,10 +3,10 @@
 // ----------------- ArrayList Implementation -----------------
 
 template <class T>
-ArrayList<T>::ArrayList(int initCapacity = 10) : capacity(initCapacity), count(0)
+ArrayList<T>::ArrayList(int initCapacity) : capacity(initCapacity), count(0)
 {
     front = Iterator(this, 0);
-    back = Iterator(this, 1);
+    back = Iterator(this, count);
     data = new T[capacity];
 }
 
@@ -58,7 +58,7 @@ void ArrayList<T>::ensureCapacity(int cap)
 {
     if (cap > this->capacity)
     {
-        int newCapacity = (capacity * 3) / 2 + 1;
+        int newCapacity = (capacity * 3) / 2;
         if (newCapacity < cap)
         {
             newCapacity = cap;
@@ -71,7 +71,7 @@ template <class T>
 void ArrayList<T>::rangeCheck(int index)
 {
     if (index < 0 || index >= count)
-        throw throw out_of_range("Index is invalid!");
+        throw out_of_range("Index is invalid!");
 }
 
 template <class T>
@@ -80,7 +80,7 @@ void ArrayList<T>::add(T e)
     // TODO: after implementing iterators
     ensureCapacity(count + 1);
     data[count++] = e;
-    back++;
+    back = Iterator(this, count);
 }
 
 template <class T>
@@ -93,23 +93,25 @@ void ArrayList<T>::add(int index, T e)
 
     int moveCount = count - index;
     if (moveCount != 0) // moveCount == 0: insert at end
-        memmove(storage + index + 1, storage + index, sizeof(T) * moveCount);
+        memmove(data + index + 1, data + index, sizeof(T) * moveCount);
 
     data[index] = e;
     count++;
-    back++;
+    back = Iterator(this, count);
 }
 
 template <class T>
 T ArrayList<T>::removeAt(int index)
 {
     rangeCheck(index);
+    T temp = data[index];
     int moveCount = count - index - 1;
     if (moveCount > 0)
         memmove(data + index, data + (index + 1), sizeof(T) * moveCount);
 
     count--;
-    back--;
+    back = Iterator(this, count);
+    return temp;
 }
 
 template <class T>
@@ -182,19 +184,20 @@ string ArrayList<T>::toString(string (*item2str)(T &)) const
             result << data[i];
 
         if (i < count - 1)
-            result << ",";
+            result << ", ";
     }
     result << "]";
+    return result.str();
 }
 
 template <class T>
-ArrayList<T>::Iterator ArrayList<T>::begin()
+typename ArrayList<T>::Iterator ArrayList<T>::begin()
 {
     return front;
 }
 
 template <class T>
-ArrayList<T>::Iterator ArrayList<T>::end()
+typename ArrayList<T>::Iterator ArrayList<T>::end()
 {
     return back;
 }
@@ -215,7 +218,7 @@ ArrayList<T>::Iterator::Iterator(ArrayList<T> *pList, int index)
 }
 
 template <class T>
-ArrayList<T>::Iterator &ArrayList<T>::Iterator::operator=(const ArrayList<T>::Iterator &other)
+typename ArrayList<T>::Iterator &ArrayList<T>::Iterator::operator=(const ArrayList<T>::Iterator &other)
 {
     this->pList = other.pList;
     this->cursor = other.cursor;
@@ -234,24 +237,20 @@ T &ArrayList<T>::Iterator::operator*()
 template <class T>
 bool ArrayList<T>::Iterator::operator!=(const ArrayList<T>::Iterator &other) const
 {
-    if (this->pList != other.pList || this->cursor != other.cursor)
-    {
-        return false;
-    }
-    return true;
+    return (this->pList != other.pList || this->cursor != other.cursor);
 }
 
 template <class T>
-ArrayList<T>::Iterator &ArrayList<T>::Iterator::operator++()
+typename ArrayList<T>::Iterator &ArrayList<T>::Iterator::operator++()
 {
     if (cursor == pList->size())
         throw out_of_range("Iterator cannot advance past end!");
-    cursor++;
+    (this->cursor)++;
     return *this;
 }
 
 template <class T>
-ArrayList<T>::Iterator ArrayList<T>::Iterator::operator++(int)
+typename ArrayList<T>::Iterator ArrayList<T>::Iterator::operator++(int)
 {
     if (cursor == pList->size())
         throw out_of_range("Iterator cannot advance past end!");
@@ -261,21 +260,21 @@ ArrayList<T>::Iterator ArrayList<T>::Iterator::operator++(int)
 }
 
 template <class T>
-ArrayList<T>::Iterator &ArrayList<T>::Iterator::operator--()
+typename ArrayList<T>::Iterator &ArrayList<T>::Iterator::operator--()
 {
     if (cursor == 0)
         throw out_of_range("Iterator cannot move before begin!");
-    cursor--;
+    (this->cursor)--;
     return *this;
 }
 
 template <class T>
-ArrayList<T>::Iterator ArrayList<T>::Iterator::operator--(int)
+typename ArrayList<T>::Iterator ArrayList<T>::Iterator::operator--(int)
 {
     if (cursor == 0)
         throw out_of_range("Iterator cannot move before begin!");
     Iterator temp(this->pList, this->cursor);
-    (this->cursor)++;
+    (this->cursor)--;
     return temp;
 }
 
@@ -283,15 +282,91 @@ ArrayList<T>::Iterator ArrayList<T>::Iterator::operator--(int)
 
 // ----------------- SinglyLinkedList Implementation -----------------
 template <class T>
-SinglyLinkedList<T>::SinglyLinkedList()
+SinglyLinkedList<T>::SinglyLinkedList() : head(nullptr), tail(nullptr), count(0)
 {
-    // TODO
+    
 }
 
 template <class T>
 SinglyLinkedList<T>::~SinglyLinkedList()
 {
-    // TODO
+    Node *temp = head, next;
+    while (temp != nullptr)
+    {
+        next = temp->next;
+        delete temp;
+        temp = next;
+    }
+}
+
+template <class T>
+void SinglyLinkedList<T>::rangeCheck(int index)
+{
+    if (index < 0 || index >= count)
+        throw out_of_range("Index is invalid!");
+}
+
+template <class T>
+void SinglyLinkedList<T>::add(T e)
+{
+    Node *temp = new Node(e);
+    if (count == 0)
+    {
+        head = temp;
+        tail = temp;
+        count++;
+        return;
+    }
+
+    tail->next = temp;
+    tail = tail->next;
+    count++;
+}
+
+template <class T>
+void SinglyLinkedList<T>::insertAtHead(T e)
+{
+    Node *temp = new Node(e);
+    if (count == 0)
+    {
+        head = temp;
+        tail = temp;
+        count++;
+        return;
+    }
+    
+    temp->next = head;
+    head = temp;
+    count++;
+}
+
+template <class T>
+void SinglyLinkedList<T>::add(int index, T e)
+{
+    if (index < 0 || index > count)
+        throw out_of_range("Index is invalid!");
+
+    if (index == 0)
+    {
+        insertAtHead(e);
+        return;
+    }
+
+    if (index == count) // insert at tail
+    {
+        add(e);
+        return;
+    }
+
+    Node *pre = head;
+
+    for (int i = 0; i < index - 1; i++)
+        pre = pre->next;
+    
+    Node *temp = new Node(e);
+    temp->next = pre->next;
+    pre->next = temp;
+    count++;
 }
 
 // TODO: implement other methods of SinglyLinkedList
@@ -307,7 +382,7 @@ SinglyLinkedList<T>::Iterator::Iterator(Node *node)
 
 // ----------------- VectorStore Implementation -----------------
 
-VectorStore::VectorStore(int dimension = 512, EmbedFn embeddingFunction = nullptr)
+VectorStore::VectorStore(int dimension, EmbedFn embeddingFunction)
 {
     // TODO
 }

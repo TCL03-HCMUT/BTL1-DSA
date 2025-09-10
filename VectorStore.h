@@ -95,6 +95,9 @@ private:
     Node *tail;
     int count;
 
+    void rangeCheck(int index);
+    void insertAtHead(T e);
+
 public:
     class Iterator;
     friend class Iterator;
