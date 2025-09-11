@@ -282,10 +282,9 @@ typename ArrayList<T>::Iterator ArrayList<T>::Iterator::operator--(int)
 
 // ----------------- SinglyLinkedList Implementation -----------------
 template <class T>
-SinglyLinkedList<T>::SinglyLinkedList() : head(nullptr), tail(nullptr), count(0)
+SinglyLinkedList<T>::SinglyLinkedList() : head(nullptr), tail(nullptr), count(0), front(Iterator(nullptr)), back(Iterator(nullptr))
 {
-    front = Iterator(head);
-    back = Iterator(head);
+    
 }
 
 template <class T>
@@ -308,6 +307,7 @@ void SinglyLinkedList<T>::add(T e)
     if (count == 0)
     {
         head = temp;
+        front = Iterator(head);
         tail = temp;
         count++;
         return;
@@ -325,12 +325,14 @@ void SinglyLinkedList<T>::insertAtHead(T e)
     if (count == 0)
     {
         head = temp;
+        front = Iterator(head);
         tail = temp;
         return;
     }
 
     temp->next = head;
     head = temp;
+    front = Iterator(head);
     count++;
 }
 
@@ -368,6 +370,7 @@ T SinglyLinkedList<T>::removeHead()
 {
     Node *temp = head;
     head = head->next;
+    front = Iterator(head);
     if (count == 1) // if count == 1
         tail = nullptr;
 
@@ -418,8 +421,9 @@ bool SinglyLinkedList<T>::removeItem(T item)
     }
 
     Node *prev = head, *temp = head->next;
-    while (temp != nullptr && temp->data != item)
+    while (temp != nullptr)
     {
+        if (temp->data == item) break;
         prev = prev->next;
         temp = temp->next;
     }
@@ -433,7 +437,7 @@ bool SinglyLinkedList<T>::removeItem(T item)
     prev->next = temp->next;
     delete temp;
     count--;
-    back--;
+    // back--;
     return true;
 }
 
@@ -462,6 +466,7 @@ void SinglyLinkedList<T>::clear()
     count = 0;
     head = nullptr;
     tail = nullptr;
+    front = Iterator(nullptr);
 }
 
 template <class T>
@@ -502,7 +507,7 @@ bool SinglyLinkedList<T>::contains(T item) const
 }
 
 template <class T>
-string SinglyLinkedList<T>::toString(string (*item2str)(T &) = 0) const
+string SinglyLinkedList<T>::toString(string (*item2str)(T &)) const
 {
     stringstream result;
     result << "[";
@@ -514,8 +519,10 @@ string SinglyLinkedList<T>::toString(string (*item2str)(T &) = 0) const
         else
             result << temp->data;
 
-        if (i < count - 1)
+        if (temp->next != nullptr)
             result << "]->[";
+        
+        temp = temp->next;
     }
     result << "]";
     return result.str();
@@ -529,7 +536,50 @@ string SinglyLinkedList<T>::toString(string (*item2str)(T &) = 0) const
 template <class T>
 SinglyLinkedList<T>::Iterator::Iterator(Node *node)
 {
-    // TODO
+    current = node;
+}
+
+template <class T>
+typename SinglyLinkedList<T>::Iterator &SinglyLinkedList<T>::Iterator::operator=(const SinglyLinkedList<T>::Iterator &other)
+{
+    // TODO:
+    this->current = other.current;
+    return *this;
+}
+
+template <class T>
+T &SinglyLinkedList<T>::Iterator::operator*()
+{
+    if (current == nullptr)
+        throw out_of_range("Iterator is out of range!");
+    
+    return current->data;
+}
+
+template <class T>
+bool SinglyLinkedList<T>::Iterator::operator!=(const SinglyLinkedList<T>::Iterator &other) const
+{
+    return this->current != other.current;
+}
+
+template <class T>
+typename SinglyLinkedList<T>::Iterator &SinglyLinkedList<T>::Iterator::operator++()
+{
+    if (current == nullptr)
+        throw out_of_range("Iterator cannot advance past end!");
+    
+    current = current->next;
+    return *this;
+}
+
+template <class T>
+typename SinglyLinkedList<T>::Iterator SinglyLinkedList<T>::Iterator::operator++(int)
+{
+    if (current == nullptr)
+        throw out_of_range("Iterator cannot advance past end!");
+    Iterator temp(this->current);
+    current = current->next;
+    return temp;
 }
 
 // TODO: implement other methods of SinglyLinkedList::Iterator
