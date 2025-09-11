@@ -3,23 +3,20 @@
 // ----------------- ArrayList Implementation -----------------
 
 template <class T>
-ArrayList<T>::ArrayList(int initCapacity) : capacity(initCapacity), count(0)
+ArrayList<T>::ArrayList(int initCapacity) : 
+capacity(initCapacity), count(0), front(Iterator(this, 0)), back(Iterator(this, count))
 {
-    front = Iterator(this, 0);
-    back = Iterator(this, count);
     data = new T[capacity];
 }
 
 template <class T>
-ArrayList<T>::ArrayList(const ArrayList<T> &other) : capacity(other.capacity), count(other.count)
+ArrayList<T>::ArrayList(const ArrayList<T> &other) : 
+capacity(other.capacity), count(other.count)
 {
     this->data = new T[this->capacity];
-    for (int i = 0; i < count; i++)
-    {
-        (this->data)[i] = (other.data)[i];
-    }
-    this->front = other.front;
-    this->back = other.back;
+    memcpy(this->data, other.data, sizeof(T) * count);
+    front = Iterator(this, 0);
+    back = Iterator(this, count);
 }
 
 template <class T>
@@ -36,8 +33,8 @@ ArrayList<T> &ArrayList<T>::operator=(const ArrayList<T> &other)
     this->data = new T[this->capacity];
     memcpy(this->data, other.data, sizeof(T) * other.count);
     this->count = other.count;
-    this->front = other.front;
-    this->back = other.back;
+    this->front = Iterator(this, 0);
+    this->back = Iterator(this, this->count);
     return *this;
 }
 
@@ -80,7 +77,7 @@ void ArrayList<T>::add(T e)
     // TODO: after implementing iterators
     ensureCapacity(count + 1);
     data[count++] = e;
-    back = Iterator(this, count);
+    back++;
 }
 
 template <class T>
@@ -97,7 +94,7 @@ void ArrayList<T>::add(int index, T e)
 
     data[index] = e;
     count++;
-    back = Iterator(this, count);
+    back++;
 }
 
 template <class T>
@@ -110,7 +107,7 @@ T ArrayList<T>::removeAt(int index)
         memmove(data + index, data + (index + 1), sizeof(T) * moveCount);
 
     count--;
-    back = Iterator(this, count);
+    back--;
     return temp;
 }
 
@@ -237,7 +234,7 @@ T &ArrayList<T>::Iterator::operator*()
 template <class T>
 bool ArrayList<T>::Iterator::operator!=(const ArrayList<T>::Iterator &other) const
 {
-    return (this->pList != other.pList || this->cursor != other.cursor);
+    return (this->pList != other.pList) || (this->cursor != other.cursor);
 }
 
 template <class T>
@@ -528,7 +525,17 @@ string SinglyLinkedList<T>::toString(string (*item2str)(T &)) const
     return result.str();
 }
 
+template <class T>
+typename SinglyLinkedList<T>::Iterator SinglyLinkedList<T>::begin()
+{
+    return front;
+}
 
+template <class T>
+typename SinglyLinkedList<T>::Iterator SinglyLinkedList<T>::end()
+{
+    return back;
+}
 
 // TODO: implement other methods of SinglyLinkedList
 
