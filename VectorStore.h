@@ -121,6 +121,7 @@ public:
     Iterator begin();
     Iterator end();
 
+    void truncate(int size);
     // Inner class Iterator
     class Iterator
     {
@@ -170,6 +171,12 @@ private:
     int dimension;
     int count;
     EmbedFn embeddingFunction;
+
+    int __uid;
+    void extend(SinglyLinkedList<float> *vector, int size);
+    void truncate(SinglyLinkedList<float> *vector, int size);
+    void rangeCheck(int index) const;
+    
 
 public:
     VectorStore(int dimension = 512, EmbedFn embeddingFunction = nullptr);

@@ -3,15 +3,13 @@
 // ----------------- ArrayList Implementation -----------------
 
 template <class T>
-ArrayList<T>::ArrayList(int initCapacity) : 
-capacity(initCapacity), count(0), front(Iterator(this, 0)), back(Iterator(this, count))
+ArrayList<T>::ArrayList(int initCapacity) : capacity(initCapacity), count(0), front(Iterator(this, 0)), back(Iterator(this, count))
 {
     data = new T[capacity];
 }
 
 template <class T>
-ArrayList<T>::ArrayList(const ArrayList<T> &other) : 
-capacity(other.capacity), count(other.count)
+ArrayList<T>::ArrayList(const ArrayList<T> &other) : capacity(other.capacity), count(other.count)
 {
     this->data = new T[this->capacity];
     memcpy(this->data, other.data, sizeof(T) * count);
@@ -281,7 +279,6 @@ typename ArrayList<T>::Iterator ArrayList<T>::Iterator::operator--(int)
 template <class T>
 SinglyLinkedList<T>::SinglyLinkedList() : head(nullptr), tail(nullptr), count(0), front(Iterator(nullptr)), back(Iterator(nullptr))
 {
-    
 }
 
 template <class T>
@@ -393,8 +390,8 @@ T SinglyLinkedList<T>::removeAt(int index)
         prev = prev->next;
 
     if (index == count - 1) // deletion at tail
-    { 
-        tail = prev;        // move tail to previous
+    {
+        tail = prev; // move tail to previous
     }
     Node *temp = prev->next;
     prev->next = temp->next;
@@ -420,7 +417,8 @@ bool SinglyLinkedList<T>::removeItem(T item)
     Node *prev = head, *temp = head->next;
     while (temp != nullptr)
     {
-        if (temp->data == item) break;
+        if (temp->data == item)
+            break;
         prev = prev->next;
         temp = temp->next;
     }
@@ -434,7 +432,6 @@ bool SinglyLinkedList<T>::removeItem(T item)
     prev->next = temp->next;
     delete temp;
     count--;
-    // back--;
     return true;
 }
 
@@ -518,7 +515,7 @@ string SinglyLinkedList<T>::toString(string (*item2str)(T &)) const
 
         if (temp->next != nullptr)
             result << "]->[";
-        
+
         temp = temp->next;
     }
     result << "]";
@@ -537,7 +534,39 @@ typename SinglyLinkedList<T>::Iterator SinglyLinkedList<T>::end()
     return back;
 }
 
-// TODO: implement other methods of SinglyLinkedList
+template <class T>
+void SinglyLinkedList<T>::truncate(int size)
+{
+    if (size == 0)
+    {
+        clear();
+        return;
+    }
+
+    if (size == count)
+        return;
+
+    if (size > count)
+        throw out_of_range("Out of range");
+
+    Node *temp = head;
+    for (int i = 0; i < size - 1; i++)
+        temp = temp->next;
+
+    // Delete all nodes after temp
+    Node *curr = temp->next;
+    temp->next = nullptr;
+    tail = temp; // Move tail to temp
+
+    while (curr != nullptr)
+    {
+        Node *next = curr->next;
+        delete curr;
+        count--;
+        curr = next;
+    }
+    count = size;
+}
 
 // ----------------- Iterator of SinglyLinkedList Implementation -----------------
 template <class T>
@@ -549,7 +578,6 @@ SinglyLinkedList<T>::Iterator::Iterator(Node *node)
 template <class T>
 typename SinglyLinkedList<T>::Iterator &SinglyLinkedList<T>::Iterator::operator=(const SinglyLinkedList<T>::Iterator &other)
 {
-    // TODO:
     this->current = other.current;
     return *this;
 }
@@ -559,7 +587,7 @@ T &SinglyLinkedList<T>::Iterator::operator*()
 {
     if (current == nullptr)
         throw out_of_range("Iterator is out of range!");
-    
+
     return current->data;
 }
 
@@ -574,7 +602,7 @@ typename SinglyLinkedList<T>::Iterator &SinglyLinkedList<T>::Iterator::operator+
 {
     if (current == nullptr)
         throw out_of_range("Iterator cannot advance past end!");
-    
+
     current = current->next;
     return *this;
 }
@@ -593,15 +621,120 @@ typename SinglyLinkedList<T>::Iterator SinglyLinkedList<T>::Iterator::operator++
 
 // ----------------- VectorStore Implementation -----------------
 
-VectorStore::VectorStore(int dimension, EmbedFn embeddingFunction)
+VectorStore::VectorRecord::VectorRecord(int id, const string &rawText, SinglyLinkedList<float> *vector) : id(id), rawText(rawText), vector(vector)
 {
-    // TODO
+    rawLength = rawText.size();
+}
+
+VectorStore::VectorStore(int dimension, EmbedFn embeddingFunction) : dimension(dimension), embeddingFunction(embeddingFunction), records(ArrayList<VectorRecord *>()), count(0), __uid(0)
+{
 }
 
 VectorStore::~VectorStore()
 {
-    // TODO
+    clear();
 }
+
+int VectorStore::size() const
+{
+    return count;
+}
+
+bool VectorStore::empty() const
+{
+    return count == 0;
+}
+
+void VectorStore::clear()
+{
+    for (auto it = records.begin(); it != records.end(); it++)
+    {
+        if (*it)
+        {
+            if ((*it)->vector)
+            {
+                delete (*it)->vector;
+            }
+            delete *it;
+        }
+    }
+    records.clear();
+}
+
+void VectorStore::extend(SinglyLinkedList<float> *vector, int size)
+{
+    while (vector->size() < size)
+    {
+        vector->add(0);
+    }
+}
+
+void VectorStore::truncate(SinglyLinkedList<float> *vector, int size)
+{
+    vector->truncate(size);
+}
+
+SinglyLinkedList<float> *VectorStore::preprocessing(string rawText)
+{
+    SinglyLinkedList<float> *preprocessed = embeddingFunction(rawText);
+    int size = preprocessed->size();
+    if (size < dimension)
+        extend(preprocessed, dimension);
+    else if (size > dimension)
+        truncate(preprocessed, dimension);
+
+    return preprocessed;
+}
+
+void VectorStore::addText(string rawText)
+{
+    SinglyLinkedList<float> *preprocessed = preprocessing(rawText);
+    VectorRecord *record = new VectorRecord(__uid++, rawText, preprocessed);
+    records.add(record);
+    count = records.size();
+}
+
+void VectorStore::rangeCheck(int index) const
+{
+    if (index < 0 || index >= count)
+        throw  out_of_range("Index is invalid!");
+}
+
+SinglyLinkedList<float> &VectorStore::getVector(int index)
+{
+    rangeCheck(index);
+    return *(records.get(index)->vector);
+}
+
+string VectorStore::getRawText(int index) const
+{
+    rangeCheck(index);
+    return (const_cast<ArrayList<VectorRecord*>&>(records).get(index))->rawText;
+}
+
+int VectorStore::getId(int index) const
+{
+    rangeCheck(index);
+    return (const_cast<ArrayList<VectorRecord*>&>(records).get(index))->id;
+}
+
+bool VectorStore::removeAt(int index)
+{
+    rangeCheck(index);
+    // TODO:
+}
+
+bool VectorStore::updateText(int index, string rawText)
+{
+    // TODO:
+}
+
+void VectorStore::setEmbeddingFunction(EmbedFn newEmbeddingFunction)
+{
+    embeddingFunction = newEmbeddingFunction;
+}
+
+
 
 // TODO: implement other methods of VectorStore
 
